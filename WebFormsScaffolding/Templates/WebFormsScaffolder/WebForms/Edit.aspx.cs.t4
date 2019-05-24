@@ -1,0 +1,78 @@
+﻿<#@ Template Language="C#" HostSpecific="True"  #>
+<#@ Output Extension="cs" #>
+<#@ include file="Imports.include.t4" #>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.ModelBinding;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data.Entity;
+using Microsoft.AspNet.FriendlyUrls.ModelBinding;
+<# if(!string.IsNullOrEmpty(ModelNamespace)) { #>
+using <#= ModelNamespace #>;
+<# } #>
+<# if(!string.IsNullOrEmpty(DbContextNamespace) && (DbContextNamespace != ModelNamespace)) { #>
+using <#= DbContextNamespace #>;
+<# } #>
+namespace <#= FolderNamespace #>
+{
+    public partial class Edit : System.Web.UI.Page
+    {
+		protected <#=DbContextTypeName#> _db = new <#=DbContextTypeName#>();
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+        }
+
+        // This is the Update methd to update the selected <#=ModelName#> item
+        // USAGE: <asp:FormView UpdateMethod="UpdateItem">
+        public void UpdateItem(<#= PrimaryKeyType #>  <#= PrimaryKeyName #>)
+        {
+            using (_db)
+            {
+                var item = _db.<#=PluralizedModelName #>.Find(<#= PrimaryKeyName #>);
+
+                if (item == null)
+                {
+                    // The item wasn't found
+                    ModelState.AddModelError("", String.Format("Item with id {0} was not found", <#= PrimaryKeyName #>));
+                    return;
+                }
+
+                TryUpdateModel(item);
+
+                if (ModelState.IsValid)
+                {
+                    // Save changes here
+                    _db.SaveChanges();
+                    Response.Redirect("../Default");
+                }
+            }
+        }
+
+        // This is the Select method to selects a single <#=ModelName#> item with the id
+        // USAGE: <asp:FormView SelectMethod="GetItem">
+        public <#=FullModelName#> GetItem([FriendlyUrlSegmentsAttribute(0)]<#=PrimaryKeyType#>? <#= PrimaryKeyName #>)
+        {
+            if (<#= PrimaryKeyName #> == null)
+            {
+                return null;
+            }
+
+            using (_db)
+            {
+                return _db.<#=PluralizedModelName #>.Find(<#= PrimaryKeyName #>);
+            }
+        }
+
+        protected void ItemCommand(object sender, FormViewCommandEventArgs e)
+        {
+            if (e.CommandName.Equals("Cancel", StringComparison.OrdinalIgnoreCase))
+            {
+                Response.Redirect("../Default");
+            }
+        }
+    }
+}

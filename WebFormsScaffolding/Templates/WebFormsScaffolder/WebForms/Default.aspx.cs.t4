@@ -1,0 +1,37 @@
+﻿<#@ Template Language="C#" HostSpecific="True"  #>
+<#@ Output Extension="cs" #>
+<#@ include file="Imports.include.t4" #>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data.Entity;
+<# if(!string.IsNullOrEmpty(ModelNamespace)) { #>
+using <#= ModelNamespace #>;
+<# } #>
+<# if(!string.IsNullOrEmpty(DbContextNamespace) && (DbContextNamespace != ModelNamespace)) { #>
+using <#= DbContextNamespace #>;
+<# } #>
+
+namespace <#= FolderNamespace #>
+{
+    public partial class Default : System.Web.UI.Page
+    {
+		protected <#=DbContextTypeName#> _db = new <#=DbContextTypeName #>();
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+        }
+
+        // Model binding method to get List of <#=ModelName#> entries
+        // USAGE: <asp:ListView SelectMethod="GetData">
+        public IQueryable<<#=FullModelName#>> GetData()
+        {
+            return _db.<#=PluralizedModelName #><#=GetIncludeExpressionsCS() #>;
+        }
+    }
+}
+
+<#@ include file="ModelMetadataFunctions.cs.include.t4" #>
